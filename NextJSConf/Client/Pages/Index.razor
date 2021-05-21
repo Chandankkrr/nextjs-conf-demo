@@ -1,0 +1,87 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime;
+
+<div class="container">
+    <h1>NextJS Conf_</h1>
+    <p style="color: #8a8f98; font-size: 20px;">Signup page real-time user display demo</p>
+</div>
+
+@code {
+    private HubConnection hubConnection;
+    private List<string> messages = new List<string>();
+    private string userInput;
+    private string messageInput;
+    private static Func<Cursor, Task> func;
+
+
+    public record Cursor
+    {
+        public string User { get; set; }
+
+        public string Message { get; set; }
+
+        public string X { get; set; }
+
+        public string Y { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .Build();
+
+        hubConnection.On<string, string, string, string, string>("ReceiveMessage", (connectionId, x, y, user, message) =>
+        {
+            JSRuntime.InvokeVoidAsync("nextjs.updateCursor", x, y, user, message, connectionId);
+            StateHasChanged();
+        });
+
+        hubConnection.On<string>("UserConnected", (connectionId) =>
+        {
+
+            JSRuntime.InvokeVoidAsync("nextjs.onUserConnected", connectionId);
+        });
+
+
+        hubConnection.On<string>("UserDisconnected", (connectionId) =>
+        {
+
+            JSRuntime.InvokeVoidAsync("nextjs.onUserDisconnected", connectionId);
+        });
+
+        func = new Func<Cursor, Task>((cursor) => SendMouseEvents(cursor));
+
+        await hubConnection.StartAsync();
+
+
+        await JSRuntime.InvokeVoidAsync("nextjs.addMouseEventListener");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+
+    [JSInvokable]
+    public static void CaptureMouseEvents(string data)
+    {
+        var cursorInfo = System.Text.Json.JsonSerializer.Deserialize<Cursor>(data);
+
+        func(cursorInfo);
+    }
+
+    public async Task SendMouseEvents(Cursor cursorInfo)
+    {
+        var userEvent = cursorInfo with
+        {
+            User = userInput,
+            Message = messageInput
+        };
+
+        await hubConnection.SendAsync("SendMessage", userEvent.X, userEvent.Y, userEvent.User, userEvent.Message);
+    }
+}

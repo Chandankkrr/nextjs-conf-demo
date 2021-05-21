@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>NextJSConf</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="NextJSConf.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+</head>
+
+<body>
+    <div id="app">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+
+    <script>const colors = [
+            '#f44336',
+            '#e91e63',
+            '#9c27b0',
+            '#673ab7',
+            '#3f51b5',
+            '#009688',
+            '#ffeb3b',
+            '#795548',
+            '#546e7a',
+            '#00bcd4',
+        ];
+
+        const getCursorIcon = (connectionId) => {
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            const svgns = 'http://www.w3.org/2000/svg';
+
+            const iconPath = document.createElementNS(
+                'http://www.w3.org/2000/svg',
+                'path'
+            );
+
+            iconPath.setAttribute(
+                'd',
+                'M9.63 6.9a1 1 0 011.27-1.27l11.25 3.75a1 1 0 010 1.9l-4.68 1.56a1 1 0 00-.63.63l-1.56 4.68a1 1 0 01-1.9 0L9.63 6.9z'
+            );
+            iconPath.setAttribute('stroke-linecap', 'round');
+            iconPath.setAttribute('stroke-linejoin', 'round');
+            iconPath.setAttribute('stroke-width', '1.5');
+
+            const circle = document.createElementNS(svgns, 'circle');
+            circle.setAttributeNS(null, 'cx', 35);
+            circle.setAttributeNS(null, 'cy', 35);
+            circle.setAttributeNS(null, 'r', 20);
+            circle.setAttributeNS(
+                null,
+                'style',
+                'fill:' + color + '; stroke: white; stroke-width: 2px;'
+            );
+
+            const iconSvg = document.createElementNS(svgns, 'svg');
+            iconSvg.setAttribute('fill', color);
+            iconSvg.setAttribute('viewBox', '0 0 60 60');
+            iconSvg.setAttribute('stroke', 'white');
+            iconSvg.setAttribute('width', '60px');
+            iconSvg.setAttribute('position', 'absolute');
+            iconSvg.classList.add('cursor-block');
+
+            iconSvg.appendChild(iconPath);
+            iconSvg.id = connectionId;
+            iconSvg.appendChild(circle);
+
+            return iconSvg;
+        };
+
+        window.nextjs = {
+            addMouseEventListener: function () {
+                window.addEventListener('mousemove', (e) => {
+                    const data = {
+                        X: e.clientX.toString(),
+                        Y: e.clientY.toString(),
+                    };
+
+                    DotNet.invokeMethodAsync(
+                        'NextJSConf.Client',
+                        'CaptureMouseEvents',
+                        JSON.stringify(data)
+                    );
+                });
+            },
+            updateCursor: function (x, y, user, message, connectionId) {
+                const el = document.getElementById(connectionId);
+
+                if (el) {
+                    el.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
+
+                    console.log(`${x}px ${y}px`);
+                }
+            },
+            onUserConnected: function (connectionId) {
+                const users = document.getElementsByClassName('cursor-block');
+
+                if (users.length === 0) {
+                    const sudoElement = document.createElement('span');
+                    sudoElement.className = 'cursor-block';
+
+                    document.getElementById('app').appendChild(sudoElement);
+                    return;
+                }
+
+                console.log(`New user connected with id ${connectionId}`);
+
+                const svgContent = getCursorIcon(connectionId);
+
+                document.getElementById('app').appendChild(svgContent);
+            },
+            onUserDisconnected: function (connectionId) {
+                const el = document.getElementById(connectionId);
+
+                document.getElementById('app').removeChild(el);
+            },
+        };</script>
+</body>
+
+</html>
