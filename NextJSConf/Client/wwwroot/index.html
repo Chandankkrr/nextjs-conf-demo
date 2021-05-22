@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    <div id="cursor-container" style="height: 50px"></div>
     <div id="app">Loading...</div>
 
     <div id="blazor-error-ui">
@@ -72,9 +73,10 @@
             iconSvg.setAttribute('width', '60px');
             iconSvg.setAttribute('position', 'absolute');
             iconSvg.classList.add('cursor-block');
+            iconSvg.setAttribute("z-index", 10);
 
-            iconSvg.appendChild(iconPath);
             iconSvg.id = connectionId;
+            iconSvg.appendChild(iconPath);
             iconSvg.appendChild(circle);
 
             return iconSvg;
@@ -100,8 +102,6 @@
 
                 if (el) {
                     el.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-
-                    console.log(`${x}px ${y}px`);
                 }
             },
             onUserConnected: function (connectionId) {
@@ -110,8 +110,9 @@
                 if (users.length === 0) {
                     const sudoElement = document.createElement('span');
                     sudoElement.className = 'cursor-block';
+                    sudoElement.id = connectionId;
 
-                    document.getElementById('app').appendChild(sudoElement);
+                    document.getElementById('cursor-container').appendChild(sudoElement);
                     return;
                 }
 
@@ -119,12 +120,25 @@
 
                 const svgContent = getCursorIcon(connectionId);
 
-                document.getElementById('app').appendChild(svgContent);
+                document.getElementById('cursor-container').appendChild(svgContent);
             },
             onUserDisconnected: function (connectionId) {
                 const el = document.getElementById(connectionId);
 
-                document.getElementById('app').removeChild(el);
+                document.getElementById('cursor-container').removeChild(el);
+            },
+            loadAllConnectedUsers: function (connectedUserIds) {
+                connectedUserIds.forEach((connectedUserId) => {
+                    const el = document.getElementById(connectedUserId);
+
+                    if (el) {
+                        return;
+                    }
+
+                    const svgContent = getCursorIcon(connectedUserId);
+
+                    document.getElementById('cursor-container').appendChild(svgContent);
+                });
             },
         };</script>
 </body>

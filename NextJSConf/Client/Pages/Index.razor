@@ -4,9 +4,22 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JSRuntime;
 
-<div class="container">
-    <h1>NextJS Conf_</h1>
-    <p style="color: #8a8f98; font-size: 20px;">Signup page real-time user display demo</p>
+<div class="container" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 50vh;">
+    <h1>NextJS Conf_ Demo</h1>
+    <p style="color: #8a8f98; font-size: 20px;">Real-time user display demo using SignalR</p>
+
+    @if (@connectedUsersCount == 1)
+    {
+        <h2>
+            No other user online
+        </h2>
+    }
+    else
+    {
+        <h2>
+            @connectedUsersCount users online
+        </h2>
+    }
 </div>
 
 @code {
@@ -14,6 +27,7 @@
     private List<string> messages = new List<string>();
     private string userInput;
     private string messageInput;
+    private int connectedUsersCount;
     private static Func<Cursor, Task> func;
 
 
@@ -40,17 +54,28 @@
             StateHasChanged();
         });
 
-        hubConnection.On<string>("UserConnected", (connectionId) =>
+        hubConnection.On<string, int>("UserConnected", (connectionId, connectedUserIdsCount) =>
         {
-
+            connectedUsersCount = connectedUserIdsCount;
             JSRuntime.InvokeVoidAsync("nextjs.onUserConnected", connectionId);
+
+            StateHasChanged();
         });
 
-
-        hubConnection.On<string>("UserDisconnected", (connectionId) =>
+        hubConnection.On<string, int>("UserDisconnected", (connectionId, connectedUserIdsCount) =>
         {
-
+            connectedUsersCount = connectedUserIdsCount;
             JSRuntime.InvokeVoidAsync("nextjs.onUserDisconnected", connectionId);
+
+            StateHasChanged();
+        });
+
+        hubConnection.On<List<string>>("LoadAllConnectedUsers", (connectedUserIds) =>
+        {
+            connectedUsersCount = connectedUserIds.Count;
+            JSRuntime.InvokeVoidAsync("nextjs.loadAllConnectedUsers", connectedUserIds);
+
+            StateHasChanged();
         });
 
         func = new Func<Cursor, Task>((cursor) => SendMouseEvents(cursor));
