@@ -34,8 +34,6 @@ namespace NextJSConf.Server.Hubs
 
             await Clients.All.SendAsync("UserDisconnected", Context.ConnectionId, ConnectedClients.ConnectedClientIds.Count);
 
-            //await Clients.All.SendAsync("LoadAllConnectedUsers", ConnectedClients.ConnectedClientIds);
-
             await base.OnDisconnectedAsync(exception);
         }
     }

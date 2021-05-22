@@ -19,7 +19,7 @@
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
             </div>
-          </div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
@@ -134,6 +134,11 @@
             },
             loadAllConnectedUsers: function (connectedUserIds) {
                 connectedUserIds.forEach((connectedUserId) => {
+
+                    if (!connectedUserId) {
+                        return;
+                    }
+
                     const el = document.getElementById(connectedUserId);
 
                     if (el) {
