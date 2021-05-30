@@ -30,7 +30,8 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
 
-    <script>const colors = [
+    <script>
+        const colors = [
             '#f44336',
             '#e91e63',
             '#9c27b0',
@@ -102,7 +103,7 @@
                     );
                 });
             },
-            updateCursor: function (x, y, user, message, connectionId) {
+            updateCursor: function (connectionId, x, y) {
                 const el = document.getElementById(connectionId);
 
                 if (el) {
@@ -150,7 +151,8 @@
                     document.getElementById('cursor-container').appendChild(svgContent);
                 });
             },
-        };</script>
+        };
+    </script>
 </body>
 
 </html>

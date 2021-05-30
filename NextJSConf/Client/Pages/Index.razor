@@ -12,9 +12,16 @@
                 <p style="color: #8a8f98;">Real-time user display demo using SignalR</p>
                 @if (@connectedUsersCount > 1)
                 {
-                    <h2>
+                    <h3>
                         @connectedUsersCount users online
-                    </h2>
+                    </h3>
+                } else{
+                    <h3>
+                        No other user online
+                    </h3>
+                    <p style="color: #8a8f98;">
+                        Open this page in a new tab to see real-time cursor update
+                    </p>
                 }
             </div>
         </div>
@@ -23,19 +30,11 @@
 
 @code {
     private HubConnection hubConnection;
-    private List<string> messages = new List<string>();
-    private string userInput;
-    private string messageInput;
     private int connectedUsersCount;
     private static Func<Cursor, Task> func;
 
-
     public record Cursor
     {
-        public string User { get; set; }
-
-        public string Message { get; set; }
-
         public string X { get; set; }
 
         public string Y { get; set; }
@@ -44,12 +43,12 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .WithUrl(NavigationManager.ToAbsoluteUri("/clienthub"))
             .Build();
 
-        hubConnection.On<string, string, string, string, string>("ReceiveMessage", (connectionId, x, y, user, message) =>
+        hubConnection.On<string, string, string>("ReceiveMessage", (connectionId, x, y) =>
         {
-            JSRuntime.InvokeVoidAsync("nextjs.updateCursor", x, y, user, message, connectionId);
+            JSRuntime.InvokeVoidAsync("nextjs.updateCursor", connectionId, x, y);
             StateHasChanged();
         });
 
@@ -81,7 +80,6 @@
 
         await hubConnection.StartAsync();
 
-
         await JSRuntime.InvokeVoidAsync("nextjs.addMouseEventListener");
     }
 
@@ -100,12 +98,6 @@
 
     public async Task SendMouseEvents(Cursor cursorInfo)
     {
-        var userEvent = cursorInfo with
-        {
-            User = userInput,
-            Message = messageInput
-        };
-
-        await hubConnection.SendAsync("SendMessage", userEvent.X, userEvent.Y, userEvent.User, userEvent.Message);
+        await hubConnection.SendAsync("SendMessage", cursorInfo.X, cursorInfo.Y);
     }
 }

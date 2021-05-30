@@ -10,17 +10,17 @@ namespace NextJSConf.Server.Hubs
         public static List<string> ConnectedClientIds = new List<string>();
     }
 
-    public class ChatHub : Hub
+    public class ClientHub : Hub
     {
-        public async Task SendMessage(string x, string y, string user, string message)
+        public async Task SendMessage(string x, string y)
         {
-            await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, x, y, user, message);
+            await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, x, y);
         }
 
         public override async Task OnConnectedAsync()
         {
             ConnectedClients.ConnectedClientIds.Add(Context.ConnectionId);
-
+            
             await Clients.All.SendAsync("UserConnected", Context.ConnectionId, ConnectedClients.ConnectedClientIds.Count);
 
             await Clients.All.SendAsync("LoadAllConnectedUsers", ConnectedClients.ConnectedClientIds);

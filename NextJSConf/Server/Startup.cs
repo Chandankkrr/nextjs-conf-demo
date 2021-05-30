@@ -61,7 +61,7 @@ namespace NextJSConf.Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<ClientHub>("/clienthub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }
